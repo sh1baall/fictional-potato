@@ -265,7 +265,7 @@ body[data-page="validation"] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center bottom;
+  object-position: center top;
 }
 
 .page-scrim {
