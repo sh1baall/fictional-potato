@@ -258,7 +258,7 @@ body[data-page="validation"] {
 /* IMAGE À CHANGER : remplace le chemin ci-dessous par ton image
    des deux pilules (bleue / rouge). Place le fichier dans /images. */
 .page-bg--accueil {
-  background-image: url("images/pilule.jpg");
+  background-image: url("images/pilule_hands_closer.png");
   background-color: var(--color-bg-soft);
 }
 
