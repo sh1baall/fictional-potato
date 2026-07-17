@@ -258,10 +258,14 @@ body[data-page="validation"] {
 /* IMAGE À CHANGER : remplace le chemin ci-dessous par ton image
    des deux pilules (bleue / rouge). Place le fichier dans /images. */
 .page-bg--accueil {
-  background-image: url("images/pilule_hands_closer.png");
-  background-position: center bottom;
-  background-size: cover;
   background-color: var(--color-bg-soft);
+}
+
+.page-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
 }
 
 .page-scrim {
