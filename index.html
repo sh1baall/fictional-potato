@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Une soirée à choisir</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Léger effet d'écran cathodique en fond, purement décoratif -->
+<div class="crt-overlay" aria-hidden="true"></div>
+
+<!-- Petits points en haut qui indiquent où on en est dans le parcours -->
+<nav class="progress" id="progress" aria-hidden="true">
+  <span class="dot" data-step="accueil"></span>
+  <span class="dot" data-step="dispo"></span>
+  <span class="dot" data-step="film"></span>
+  <span class="dot" data-step="nourriture"></span>
+  <span class="dot" data-step="dodo"></span>
+  <span class="dot" data-step="validation"></span>
+</nav>
+
+<main id="app">
+
+  <!-- ============================================================
+       PAGE 1 — ACCUEIL
+       - Modifie la question dans le <h1 class="question">
+       - Modifie l'image de fond dans style.css, règle .page-bg--accueil
+         (cherche le commentaire "IMAGE À CHANGER")
+       ============================================================ -->
+  <section class="page is-active" id="section-accueil" data-page="accueil">
+    <div class="page-bg page-bg--accueil"></div>
+    <div class="page-scrim"></div>
+    <div class="page-content page-content--accueil">
+      <h1 class="question">Un ptit date ça te dis ?</h1>
+
+      <div class="pills">
+        <button class="pill pill--blue" id="btn-pill-bleue" type="button">
+          <span class="pill-cap"></span>
+          <span class="pill-label">Oui je le veux</span>
+        </button>
+        <button class="pill pill--red" id="btn-pill-rouge" type="button">
+          <span class="pill-cap"></span>
+          <span class="pill-label">Souhaite ma mort directement</span>
+        </button>
+      </div>
+
+      <p class="hint" id="accueil-hint" aria-live="polite">&nbsp;</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE 2 — DISPONIBILITÉS
+       Le calendrier est généré automatiquement par script.js.
+       Pour changer le mois ou l'année, modifie CONFIG.calendrier
+       en haut de script.js.
+       ============================================================ -->
+  <section class="page" id="section-dispo" data-page="dispo">
+    <div class="page-content page-content--wide">
+      <h2 class="question">Tu es libre quand ?</h2>
+      <p class="subtext">Sélectionne une ou plusieurs dates.</p>
+
+      <div class="calendar" id="calendar">
+        <div class="calendar-header">
+          <span class="calendar-title" id="calendar-title">Juillet</span>
+        </div>
+        <div class="calendar-weekdays" id="calendar-weekdays"></div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+
+      <p class="selection-count" id="dispo-count">Aucune date sélectionnée</p>
+      <button class="btn btn--primary" id="btn-dispo-valider" disabled>Valider</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE 3 — FILM
+       - Modifie l'image dans images/film.jpg (même nom de fichier)
+       - Modifie le titre dans le <h2 id="film-title">
+       ============================================================ -->
+  <section class="page" id="section-film" data-page="film">
+    <div class="page-content page-content--film">
+
+      <div class="film-frame">
+        <!-- IMAGE À CHANGER : remplace images/film.jpg par l'affiche du film -->
+        <img src="images/affiche.png" alt="Affiche du film" class="film-image" id="film-image">
+      </div>
+
+      <h2 class="film-title" id="film-title">The odyssey</h2>
+      <p class="question question--small">Ça t'intéresserai ?</p>
+
+      <div class="choice-row">
+        <button class="btn btn--primary" id="btn-film-oui" type="button">Oui pourquoi pas</button>
+        <button class="btn btn--ghost" id="btn-film-autre" type="button">Je veux faire autre chose</button>
+      </div>
+
+      <div class="activity-box is-hidden" id="activity-box">
+        <label for="activity-input">Propose une activité</label>
+        <textarea id="activity-input" rows="3" placeholder="Dis-moi ce que tu as en tête..."></textarea>
+        <button class="btn btn--primary" id="btn-activity-valider" type="button">Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE 4 — NOURRITURE
+       - Modifie l'image dans images/nourriture.jpg
+       - Modifie le texte dans le <p class="subtext">
+       ============================================================ -->
+  <section class="page" id="section-nourriture" data-page="nourriture">
+    <div class="page-content">
+
+      <div class="food-frame">
+        <!-- IMAGE À CHANGER : remplace images/nourriture.jpg -->
+        <img src="images/nourriture.jpg" alt="" class="food-image" id="food-image">
+      </div>
+
+      <h2 class="question question--small">Le plus important : la BOUFFE</h2>
+      <p class="subtext">Tu me diras ce que tu veux manger, on cherchera</p>
+
+      <button class="btn btn--primary" id="btn-nourriture-suivant" type="button">Suivant</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE 5 — DODO
+       ============================================================ -->
+  <section class="page" id="section-dodo" data-page="dodo">
+    <div class="page-content">
+      <div class="dodo-illustration">
+        <img src="images/dodo.jpg" alt="Illustration de la page dodo" class="dodo-image">
+      </div>
+
+      <h2 class="question">On dort chez qui ?</h2>
+
+      <div class="choice-row">
+        <button class="btn btn--primary" id="btn-dodo-moi" type="button">Dans ma merveilleurse chambre avec un grand lit</button>
+        <button class="btn btn--primary" id="btn-dodo-toi" type="button">Dans notre chambre toujours aussi charmante</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PAGE 6 — VALIDATION
+       Le récapitulatif est rempli automatiquement par script.js
+       à partir des choix précédents.
+       ============================================================ -->
+  <section class="page" id="section-validation" data-page="validation">
+    <div class="page-content page-content--wide">
+      <p class="eyebrow">// récapitulatif</p>
+      <h2 class="question">Tes choix de reine</h2>
+
+      <dl class="summary" id="summary-list"></dl>
+
+      <button class="btn btn--primary" id="btn-envoyer" type="button">Tout est bon ?</button>
+      <p class="status" id="send-status" aria-live="polite">&nbsp;</p>
+    </div>
+  </section>
+
+  <section class="page" id="section-fin" data-page="fin">
+    <div class="page-content page-content--wide">
+      <div class="fin-illustration">
+        <img src="images/fin.jpg" alt="Illustration finale" class="fin-image">
+      </div>
+
+      <h2 class="question">Tout est bon babe !</h2>
+      <p class="subtext">Je m'occupe du reste, je t'aime ❤️</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- EmailJS : voir la section EMAILJS CONFIG en haut de script.js -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

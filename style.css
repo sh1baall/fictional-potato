@@ -1,0 +1,688 @@
+/* =========================================================================
+   TOKENS
+   ========================================================================= */
+:root {
+  --color-bg: #0b0f1a;
+  --color-bg-soft: #121826;
+  --color-bg-card: #161d2e;
+  --color-cyan: #4fe3c1;
+  --color-cyan-dim: #2c8f7c;
+  --color-red: #ff3b5c;
+  --color-blue: #3b82ff;
+  --color-parchment: #f2e9dc;
+  --color-slate: #7c8699;
+  --color-slate-dim: #4a5262;
+
+  --font-display: "Space Mono", "Courier New", monospace;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --radius-s: 6px;
+  --radius-m: 14px;
+  --radius-l: 28px;
+
+  --transition-fast: 180ms ease;
+  --transition-med: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* =========================================================================
+   RESET / BASE
+   ========================================================================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  transition: background 650ms ease;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+}
+
+textarea {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* =========================================================================
+   FOND PAR ÉTAPE
+   Le JS pose un attribut data-page="..." sur <body> à chaque changement
+   de page (voir goToPage() dans script.js). Chaque étape a sa propre
+   teinte, très légère, en dégradé radial par-dessus le fond de base.
+   Toutes les règles gardent la même structure (radial-gradient + couleur
+   de base) pour que la transition entre deux fonds reste fluide.
+
+   Pour changer une couleur : modifie juste la valeur rgba() de la règle
+   correspondante. Le dernier chiffre (0.10, 0.08...) est l'opacité de
+   la teinte : plus il est petit, plus c'est discret.
+   ========================================================================= */
+body[data-page="accueil"] {
+  /* La page d'accueil a déjà sa propre image de fond (voir .page-bg--accueil),
+     donc ici on garde simplement le fond neutre. */
+  background: var(--color-bg);
+}
+
+body[data-page="dispo"] {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(79, 227, 193, 0.10), transparent 60%),
+    var(--color-bg);
+}
+
+body[data-page="film"] {
+  background:
+    radial-gradient(circle at 85% 15%, rgba(59, 130, 255, 0.10), transparent 60%),
+    var(--color-bg);
+}
+
+body[data-page="nourriture"] {
+  background:
+    radial-gradient(circle at 50% 85%, rgba(242, 233, 220, 0.08), transparent 60%),
+    var(--color-bg);
+}
+
+body[data-page="dodo"] {
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255, 59, 92, 0.08), transparent 60%),
+    var(--color-bg);
+}
+
+body[data-page="validation"] {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(79, 227, 193, 0.09), transparent 65%),
+    var(--color-bg);
+}
+
+/* =========================================================================
+   CRT / SCANLINE OVERLAY — signature ambiance, très discret
+   ========================================================================= */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(242, 233, 220, 0.035) 0px,
+    rgba(242, 233, 220, 0.035) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  animation: crt-flicker 6s infinite steps(1);
+}
+
+@keyframes crt-flicker {
+  0%, 96%, 100% { opacity: 0.5; }
+  97% { opacity: 0.3; }
+  98% { opacity: 0.6; }
+}
+
+/* =========================================================================
+   PROGRESS DOTS
+   ========================================================================= */
+.progress {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 900;
+}
+
+.progress .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-slate-dim);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.progress .dot.is-current {
+  background: var(--color-cyan);
+  transform: scale(1.5);
+}
+
+.progress .dot.is-done {
+  background: var(--color-parchment);
+}
+
+/* =========================================================================
+   PAGE / SECTION LAYOUT
+   ========================================================================= */
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+.page {
+  display: none;
+  position: relative;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 24px 64px;
+}
+
+.page.is-active {
+  display: flex;
+  animation: page-in var(--transition-med) both;
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 560px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.page-content--wide {
+  max-width: 640px;
+}
+
+.page-content--film {
+  max-width: 480px;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-cyan);
+  margin: 0;
+}
+
+.question {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.question--small {
+  font-size: clamp(19px, 3vw, 24px);
+}
+
+.subtext {
+  font-size: 15px;
+  color: var(--color-slate);
+  margin: -8px 0 0;
+  max-width: 40ch;
+}
+
+/* =========================================================================
+   PAGE 1 — ACCUEIL
+   ========================================================================= */
+.page-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+/* IMAGE À CHANGER : remplace le chemin ci-dessous par ton image
+   des deux pilules (bleue / rouge). Place le fichier dans /images. */
+.page-bg--accueil {
+  background-image: url("images/pilule.jpg");
+  background-color: var(--color-bg-soft);
+}
+
+.page-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(11, 15, 26, 0.55) 0%, rgba(11, 15, 26, 0.85) 70%, rgba(11, 15, 26, 0.96) 100%);
+}
+
+.page-content--accueil {
+  gap: 40px;
+}
+
+.pills {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  padding: 16px 30px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-bg);
+  background: var(--color-parchment);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pill-cap {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pill--blue .pill-cap { background: var(--color-blue); }
+.pill--red .pill-cap { background: var(--color-red); }
+
+.pill--blue {
+  box-shadow: 0 0 0 1px rgba(59, 130, 255, 0.4);
+}
+.pill--red {
+  box-shadow: 0 0 0 1px rgba(255, 59, 92, 0.4);
+}
+
+.pill:hover {
+  transform: translateY(-3px);
+}
+.pill--blue:hover {
+  box-shadow: 0 8px 24px rgba(59, 130, 255, 0.35);
+}
+.pill--red:hover {
+  box-shadow: 0 8px 24px rgba(255, 59, 92, 0.35);
+}
+
+.hint {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--color-red);
+  min-height: 18px;
+  margin: 0;
+}
+
+/* Mauvaise réponse : petit glitch d'écran pour dire "tu n'as pas bougé" */
+.page.is-glitching {
+  animation: page-in var(--transition-med) both, glitch 420ms steps(2, end);
+}
+
+@keyframes glitch {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 2px); filter: hue-rotate(20deg); }
+  40% { transform: translate(6px, -2px); filter: hue-rotate(-20deg); }
+  60% { transform: translate(-4px, 0); filter: hue-rotate(10deg); }
+  80% { transform: translate(4px, 1px); filter: hue-rotate(-10deg); }
+  100% { transform: translate(0, 0); filter: none; }
+}
+
+/* =========================================================================
+   PAGE 2 — DISPONIBILITÉS / CALENDRIER
+   ========================================================================= */
+.calendar {
+  width: 100%;
+  max-width: 380px;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(242, 233, 220, 0.08);
+  border-radius: var(--radius-m);
+  padding: 20px;
+}
+
+.calendar-header {
+  margin-bottom: 14px;
+}
+
+.calendar-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: var(--color-cyan);
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.calendar-weekdays {
+  margin-bottom: 8px;
+}
+
+.calendar-weekdays span {
+  font-size: 11px;
+  color: var(--color-slate);
+  text-align: center;
+  font-family: var(--font-display);
+}
+
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-parchment);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.calendar-day:hover {
+  border-color: var(--color-cyan-dim);
+}
+
+.calendar-day.is-selected {
+  background: var(--color-cyan);
+  border-color: var(--color-cyan);
+  color: var(--color-bg);
+  font-weight: 600;
+  transform: scale(1.04);
+}
+
+.calendar-day.is-empty {
+  border: none;
+  cursor: default;
+}
+
+.selection-count {
+  font-size: 13px;
+  color: var(--color-slate);
+  margin: 0;
+}
+
+/* =========================================================================
+   BOUTONS génériques
+   ========================================================================= */
+.btn {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 14px 28px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform var(--transition-fast), opacity var(--transition-fast), background var(--transition-fast);
+}
+
+.btn--primary {
+  background: var(--color-cyan);
+  color: var(--color-bg);
+}
+
+.btn--primary:hover {
+  transform: translateY(-2px);
+}
+
+.btn--primary:disabled {
+  background: var(--color-slate-dim);
+  color: rgba(242, 233, 220, 0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-parchment);
+  border-color: rgba(242, 233, 220, 0.3);
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-parchment);
+  transform: translateY(-2px);
+}
+
+button:focus-visible,
+.calendar-day:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   PAGE 3 — FILM
+   ========================================================================= */
+.film-frame {
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  background: var(--color-bg-card);
+  position: relative;
+}
+
+.film-frame.is-empty,
+.food-frame.is-empty {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.film-frame.is-empty::after,
+.food-frame.is-empty::after {
+  content: "Ajoute ton image dans /images (voir script.js)";
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--color-slate);
+  text-align: center;
+  padding: 20px;
+  max-width: 220px;
+}
+
+.film-image {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+}
+
+.film-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--color-cyan);
+  margin: 0;
+}
+
+.choice-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.activity-box {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  border-radius: var(--radius-m);
+  padding: 18px;
+}
+
+.activity-box.is-hidden {
+  display: none;
+}
+
+.activity-box label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--color-slate);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.activity-box textarea {
+  resize: vertical;
+  background: var(--color-bg-soft);
+  border: 1px solid rgba(242, 233, 220, 0.15);
+  border-radius: var(--radius-s);
+  color: var(--color-parchment);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+/* =========================================================================
+   PAGE 4 — NOURRITURE
+   ========================================================================= */
+.food-frame {
+  width: 100%;
+  max-width: 340px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  background: var(--color-bg-card);
+  position: relative;
+}
+
+.food-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+/* =========================================================================
+   PAGE 5 — DODO
+   ========================================================================= */
+.dodo-illustration {
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 4px;
+}
+
+.dodo-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-m);
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* =========================================================================
+   PAGE 6 — VALIDATION / RÉCAPITULATIF
+   ========================================================================= */
+.summary {
+  width: 100%;
+  max-width: 460px;
+  text-align: left;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  border-radius: var(--radius-m);
+  padding: 20px 24px;
+  margin: 0;
+}
+
+.fin-illustration {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 8px;
+}
+
+.fin-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-m);
+  border: 1px solid rgba(242, 233, 220, 0.1);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.summary dt {
+  font-family: var(--font-display);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-cyan);
+  margin-top: 14px;
+}
+
+.summary dt:first-child {
+  margin-top: 0;
+}
+
+.summary dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--color-parchment);
+}
+
+.status {
+  font-size: 13px;
+  min-height: 18px;
+  margin: 0;
+  color: var(--color-slate);
+}
+
+.status.is-success {
+  color: var(--color-cyan);
+}
+
+.status.is-error {
+  color: var(--color-red);
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+@media (max-width: 480px) {
+  .page {
+    padding: 84px 18px 48px;
+  }
+  .pills {
+    flex-direction: column;
+    width: 100%;
+  }
+  .pill {
+    width: 100%;
+    justify-content: center;
+  }
+  .choice-row {
+    flex-direction: column;
+    width: 100%;
+  }
+  .choice-row .btn {
+    width: 100%;
+  }
+}
